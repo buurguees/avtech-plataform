@@ -1,0 +1,83 @@
+# AVTech Platform - Backend Docker Compose
+# =========================================
+
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=avtech_user
+      - DB_PASSWORD=avtech_password
+      - DB_NAME=avtech_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET_NAME=avtech-media
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: avtech_db
+      POSTGRES_USER: avtech_user
+      POSTGRES_PASSWORD: avtech_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+
+  # Optional: Database migration service
+  migrate:
+    build: .
+    command: python migrate.py create
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=avtech_user
+      - DB_PASSWORD=avtech_password
+      - DB_NAME=avtech_db
+    depends_on:
+      - postgres
+    profiles:
+      - migration
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

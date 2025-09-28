@@ -1,0 +1,84 @@
+
+---
+
+**2. Archivo: `pyproject.toml` (Ubicación: `avtech-platform/pyproject.toml`)**
+```toml
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "avtech-platform"
+description = "AVTech Platform - Digital Signage Management System"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Tu Nombre", email = "tu.email@ejemplo.com" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License", # O la licencia que uses
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dynamic = ["version"]
+
+dependencies = [
+    "fastapi>=0.104.0,<0.105.0",
+    "uvicorn[standard]>=0.24.0,<0.25.0",
+    "sqlalchemy>=2.0.0,<3.0.0",
+    "asyncpg>=0.29.0,<0.30.0", # Driver async para PostgreSQL
+    "alembic>=1.13.0,<2.0.0", # Para migraciones de DB
+    "pydantic>=2.5.0,<3.0.0",
+    "pydantic-settings>=2.0.0,<3.0.0", # Para manejo de configuración
+    "minio>=7.0.0,<8.0.0", # Cliente MinIO
+    "redis>=5.0.0,<6.0.0", # Cliente Redis
+    "python-multipart>=0.0.6,<1.0.0", # Para manejo de form-data (uploads)
+    "ffmpeg-python>=0.2.0,<1.0.0", # Para procesamiento de video
+    "psutil>=5.9.0,<6.0.0", # Para monitoreo del sistema (player)
+    "httpx>=0.25.0,<1.0.0", # Cliente HTTP para el player
+    "aiofiles>=23.0.0,<24.0.0", # Operaciones de archivos async (player)
+    "tenacity>=8.2.0,<9.0.0", # Para retry con backoff
+    "prometheus-client>=0.19.0,<1.0.0", # Métricas Prometheus
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0,<8.0.0",
+    "pytest-asyncio>=0.21.0,<1.0.0",
+    "pytest-mock>=3.10.0,<4.0.0",
+    "black>=23.0.0,<24.0.0",
+    "flake8>=6.0.0,<7.0.0",
+    "mypy>=1.0.0,<2.0.0",
+    "pre-commit>=3.0.0,<4.0.0",
+]
+test = [
+    "pytest>=7.0.0,<8.0.0",
+    "pytest-asyncio>=0.21.0,<1.0.0",
+    "pytest-mock>=3.10.0,<4.0.0",
+    "pytest-cov>=4.0.0,<5.0.0", # Para cobertura de pruebas
+]
+
+[tool.setuptools_scm]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "integration: marks tests as integration tests",
+    "e2e: marks tests as end-to-end tests",
+    "slow: marks tests as slow",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
