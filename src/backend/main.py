@@ -1,92 +1,45 @@
+# src/backend/main.py
 """
-AVTech Platform - Backend Main Application
-==========================================
-
-FastAPI application for AVTech Platform backend services.
+Punto de entrada principal para la aplicación FastAPI del backend.
 """
 
-import uvicorn
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
+import asyncio
+import logging
 from contextlib import asynccontextmanager
-
+from fastapi import FastAPI
 from src.backend.config import settings
+from src.backend.app import create_app
 from src.backend.database.connection import init_db
-from src.backend.monitoring.logger import setup_logging
 
+# Configurar logging básico
+logging.basicConfig(level=settings.server.log_level.upper())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager."""
-    # Startup
-    setup_logging()
-    await init_db()
-    yield
-    # Shutdown
-    pass
-
-
-# Create FastAPI application
-app = FastAPI(
-    title="AVTech Platform API",
-    description="Backend API for AVTech Platform - Digital Signage Management System",
-    version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    lifespan=lifespan
-)
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Add trusted host middleware
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["*"]  # Configure appropriately for production
-)
-
-
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "message": "AVTech Platform API",
-        "version": "0.1.0",
-        "status": "running"
-    }
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "service": "avtech-backend"
-    }
-
-
-# Include API routes
-# from src.backend.api.v1.router import api_router
-# app.include_router(api_router, prefix="/api/v1")
-
+    """
+    Contexto de vida útil de la aplicación FastAPI.
+    Se ejecuta al inicio y al apagado.
+    """
+    print("Iniciando aplicación AVTech Backend...")
+    # Inicializar recursos al inicio
+    await init_db() # Inicializar conexión a la base de datos
+    print("Conexión a la base de datos inicializada.")
+    yield # Aquí corre la aplicación
+    print("Cerrando aplicación AVTech Backend...")
+    # Cerrar recursos al apagado si es necesario
+    # await close_db_resources()
 
 def main():
-    """Main entry point for the application."""
+    """Función principal para ejecutar la aplicación."""
+    app = create_app(lifespan=lifespan)
+    import uvicorn
     uvicorn.run(
-        "main:app",
+        app,
         host=settings.server.host,
         port=settings.server.port,
-        reload=settings.server.debug,
+        reload=settings.server.debug, # Recarga automática en modo debug
         log_level=settings.server.log_level.lower()
     )
-
 
 if __name__ == "__main__":
     main()
